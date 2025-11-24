@@ -1,51 +1,67 @@
 @import "tailwindcss";
 
+/* Hero Font - Hakgyoansim Allimjang */
+@font-face {
+    font-family: 'Hakgyoansim Allimjang';
+    src: url('/herofont/Hakgyoansim Allimjang OTF R.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'Hakgyoansim Allimjang';
+    src: url('/herofont/Hakgyoansim Allimjang OTF B.otf') format('opentype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
 
 @theme inline {
-  --color-brand-yellow: #FECE48;
-  --color-brand-black: #111827;
-  --color-status-red: #EF4444;
-  --color-status-green: #22C55E;
-  --color-background: #111827;
-  --color-foreground: #FFFFFF;
-  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    --color-brand-yellow: #FECE48;
+    --color-brand-black: #111827;
+    --color-status-red: #EF4444;
+    --color-status-green: #22C55E;
+    --color-background: #111827;
+    --color-foreground: #FFFFFF;
+    --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
 }
 
 :root {
-  --background: #111827;
-  --foreground: #FFFFFF;
+    --background: #111827;
+    --foreground: #FFFFFF;
 }
 
 html {
-  scroll-behavior: smooth;
-  overflow-x: hidden;
+    scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-  overflow-x: hidden;
+    background: var(--background);
+    color: var(--foreground);
+    font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+    overflow-x: hidden;
 }
 
 /* Fixed header offset for anchor links */
 section[id] {
-  scroll-margin-top: 120px;
+    scroll-margin-top: 120px;
 }
 
 /* Desktop-only Scroll Snapping */
 @media (min-width: 768px) {
-  html {
-    scroll-snap-type: y mandatory;
-  }
+    html {
+        scroll-snap-type: y mandatory;
+    }
 
-  section {
-    scroll-snap-align: start;
-    scroll-snap-stop: always;
-  }
+    section {
+        scroll-snap-align: start;
+        scroll-snap-stop: always;
+    }
 
-  /* Disable snapping for short sections or footer if needed */
-  footer {
-    scroll-snap-align: start;
-  }
+    /* Disable snapping for short sections or footer if needed */
+    footer {
+        scroll-snap-align: start;
+    }
 }
