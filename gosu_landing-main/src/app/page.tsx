@@ -179,7 +179,7 @@ const Hero = () => {
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
         <Image
-          src="/hero3.png"
+          src="/hero3.webp"
           alt="Hero Background"
           fill
           className="object-cover"
@@ -552,6 +552,38 @@ const USP = () => {
     };
   }, [realisticVideoSrc]);
 
+  // 4. Intersection Observer for Lazy Loading & Auto-Pause
+  useEffect(() => {
+    const observerOptions = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    };
+
+    const handleIntersect = (entries: IntersectionObserverEntry[]) => {
+      entries.forEach(entry => {
+        const video = entry.target as HTMLVideoElement;
+        if (entry.isIntersecting) {
+          // Play when visible
+          video.play().catch(() => { });
+        } else {
+          // Pause when not visible
+          video.pause();
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(handleIntersect, observerOptions);
+
+    if (stationVideoRef.current) observer.observe(stationVideoRef.current);
+    if (accidentVideoRef.current) observer.observe(accidentVideoRef.current);
+    if (realisticVideoRef.current) observer.observe(realisticVideoRef.current);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [realisticVideoSrc]); // Re-attach if src changes (though refs usually stable, realistic src changes)
+
   return (
     <section id="usp" className="min-h-screen flex flex-col justify-center pt-24 pb-12 md:pt-32 md:pb-20 bg-brand-black">
       <div className="container mx-auto px-4">
@@ -628,10 +660,10 @@ const USP = () => {
             <video
               ref={stationVideoRef}
               src="/stationmosaic.mp4"
-              autoPlay
               loop
               muted
               playsInline
+              preload="none"
               className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
             />
             <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-10">
@@ -682,10 +714,10 @@ const USP = () => {
             <video
               ref={accidentVideoRef}
               src="/accident.mp4"
-              autoPlay
               loop
               muted
               playsInline
+              preload="none"
               className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
             />
             <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-10">
@@ -713,9 +745,9 @@ const USP = () => {
             <video
               ref={realisticVideoRef}
               src={realisticVideoSrc}
-              autoPlay
               muted
               playsInline
+              preload="none"
               className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
             />
             <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-10">
@@ -1283,7 +1315,7 @@ const FAQ = () => {
         <div className="text-center mb-8 md:mb-12 relative inline-block w-full">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-20 h-20 md:w-32 md:h-32 animate-bounce duration-[2000ms] z-0 opacity-80">
             <Image
-              src="/speaker.png"
+              src="/speaker.webp"
               alt="Speaker"
               fill
               className="object-contain"
