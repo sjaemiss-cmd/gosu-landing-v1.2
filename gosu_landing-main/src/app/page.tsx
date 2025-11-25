@@ -427,12 +427,130 @@ const CostCalculator = () => {
 // 4. USP (Unique Selling Proposition)
 const USP = () => {
   const stationVideoRef = React.useRef<HTMLVideoElement>(null);
+  const accidentVideoRef = React.useRef<HTMLVideoElement>(null);
+  const realisticVideoRef = React.useRef<HTMLVideoElement>(null);
 
+  // State for Realistic Card Playlist
+  // 'function' -> plays function.mp4
+  // 'motion' -> plays motion.mp4
+  const [realisticVideoSrc, setRealisticVideoSrc] = useState<'/function.mp4' | '/motion.mp4'>('/function.mp4');
+
+  // 1. Station Video: 2x speed + Trim last 5s
   useEffect(() => {
-    if (stationVideoRef.current) {
-      stationVideoRef.current.playbackRate = 2.0;
-    }
+    const stationVideo = stationVideoRef.current;
+    if (!stationVideo) return;
+
+    stationVideo.playbackRate = 2.0;
+
+    const handleStationTimeUpdate = () => {
+      if (stationVideo.duration) {
+        const endTime = Math.max(0, stationVideo.duration - 5);
+        if (stationVideo.currentTime >= endTime) {
+          stationVideo.currentTime = 0;
+          stationVideo.play();
+        }
+      }
+    };
+
+    stationVideo.addEventListener('timeupdate', handleStationTimeUpdate);
+
+    return () => {
+      stationVideo.removeEventListener('timeupdate', handleStationTimeUpdate);
+    };
   }, []);
+
+  // 2. Accident Video: Loop last 15 seconds
+  useEffect(() => {
+    const accidentVideo = accidentVideoRef.current;
+    if (!accidentVideo) return;
+
+    const handleTimeUpdate = () => {
+      // Ensure we have duration
+      if (accidentVideo.duration) {
+        const startTime = Math.max(0, accidentVideo.duration - 15);
+
+        // If we are before the start time (e.g. on first load), jump to it
+        if (accidentVideo.currentTime < startTime) {
+          accidentVideo.currentTime = startTime;
+        }
+
+        // If we reach the end, loop back to start time
+        if (accidentVideo.ended || accidentVideo.currentTime >= accidentVideo.duration) {
+          accidentVideo.currentTime = startTime;
+          accidentVideo.play();
+        }
+      }
+    };
+
+    // Initial setup when metadata loads
+    const handleLoadedMetadata = () => {
+      if (accidentVideo.duration) {
+        accidentVideo.currentTime = Math.max(0, accidentVideo.duration - 15);
+      }
+    };
+
+    accidentVideo.addEventListener('timeupdate', handleTimeUpdate);
+    accidentVideo.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      accidentVideo.removeEventListener('timeupdate', handleTimeUpdate);
+      accidentVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, []);
+
+  // 3. Realistic Video Logic (Playlist + Trimming)
+  useEffect(() => {
+    const video = realisticVideoRef.current;
+    if (!video) return;
+
+    // Always 2x speed for both videos
+    video.playbackRate = 2.0;
+
+    const handleTimeUpdate = () => {
+      if (!video.duration) return;
+
+      if (realisticVideoSrc === '/motion.mp4') {
+        // motion.mp4: Start at 10s, End at duration - 10s
+        const startTime = 10;
+        const endTime = Math.max(10, video.duration - 10);
+
+        // Enforce start time
+        if (video.currentTime < startTime) {
+          video.currentTime = startTime;
+        }
+
+        // Check for end
+        if (video.currentTime >= endTime) {
+          // Switch back to function.mp4
+          setRealisticVideoSrc('/function.mp4');
+        }
+      } else {
+        // function.mp4: Play until duration - 10s, then switch
+        const endTime = Math.max(0, video.duration - 10);
+        if (video.currentTime >= endTime) {
+          setRealisticVideoSrc('/motion.mp4');
+        }
+      }
+    };
+
+    const handleLoadedMetadata = () => {
+      // When motion.mp4 loads, jump to 10s
+      if (realisticVideoSrc === '/motion.mp4') {
+        video.currentTime = 10;
+      }
+      // Ensure speed is set every time source changes
+      video.playbackRate = 2.0;
+      video.play().catch(() => { });
+    };
+
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    video.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    return () => {
+      video.removeEventListener('timeupdate', handleTimeUpdate);
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [realisticVideoSrc]);
 
   return (
     <section id="usp" className="min-h-screen flex flex-col justify-center pt-24 pb-12 md:pt-32 md:pb-20 bg-brand-black">
@@ -509,7 +627,7 @@ const USP = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10" />
             <video
               ref={stationVideoRef}
-              src="/station.mp4"
+              src="/stationmosaic.mp4"
               autoPlay
               loop
               muted
@@ -524,7 +642,7 @@ const USP = () => {
                 노원역 3번 출구<br />도보 2분 컷!
               </h3>
               <p className="text-gray-300 text-sm md:text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
-                도봉면허시험장도 걸어서 5분이면 도착해요.
+                도봉면허시험장도 걸어서 2분이면 도착해요.
               </p>
             </div>
           </motion.div>
@@ -552,66 +670,65 @@ const USP = () => {
             <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-colors duration-500" />
           </motion.div>
 
-          {/* 5. 실수해도 괜찮아 (Text Card - Dark) */}
+          {/* 5. 실수해도 괜찮아 (Video Card - Accident) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
             viewport={{ once: true }}
-            className="bg-gray-900 border border-gray-800 rounded-3xl p-8 md:p-10 flex flex-col justify-between min-h-[320px] relative overflow-hidden group hover:-translate-y-2 transition-transform duration-300 hover:border-gray-700"
+            className="relative rounded-3xl overflow-hidden min-h-[320px] group"
           >
-            <div className="relative z-10">
-              <div className="bg-gray-800 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-700 transition-colors">
-                <ShieldCheck className="w-8 h-8 text-brand-yellow" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10" />
+            <video
+              ref={accidentVideoRef}
+              src="/accident.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+            />
+            <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-10">
+              <div className="bg-brand-yellow text-brand-black text-xs font-bold px-3 py-1 rounded-full inline-flex items-center w-fit mb-3">
+                <ShieldCheck className="w-3 h-3 mr-1" /> SAFE & EASY
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
                 실수해도 괜찮아요<br />사고 걱정 ZERO
               </h3>
-              <p className="text-gray-400 text-lg leading-relaxed break-keep">
-                교통사고 걱정 없이 마음껏 실수하며<br />
-                진짜 운전 실력을 키워보세요.
+              <p className="text-gray-300 text-sm md:text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                교통사고 걱정 없이 마음껏 실수하며 진짜 실력을 키우세요.
               </p>
             </div>
-            <div className="absolute -bottom-4 -right-4 w-40 h-40 md:w-48 md:h-48 z-0 opacity-50 group-hover:opacity-100 group-hover:scale-110 transition-all duration-500">
-              <Image
-                src="/car.png"
-                alt="Car"
-                fill
-                className="object-contain"
-              />
-            </div>
-            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-brand-yellow/5 rounded-full blur-3xl group-hover:bg-brand-yellow/10 transition-colors duration-500" />
           </motion.div>
 
-          {/* 6. 현실감 (Text Card - Yellow) */}
+          {/* 6. 현실감 (Video Card - Realistic) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.5 }}
             viewport={{ once: true }}
-            className="bg-brand-yellow rounded-3xl p-8 md:p-10 flex flex-col justify-between min-h-[320px] relative overflow-hidden group hover:-translate-y-2 transition-transform duration-300"
+            className="relative rounded-3xl overflow-hidden min-h-[320px] group"
           >
-            <div className="relative z-10">
-              <div className="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
-                <Monitor className="w-8 h-8 text-brand-black" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10" />
+            <video
+              ref={realisticVideoRef}
+              src={realisticVideoSrc}
+              autoPlay
+              muted
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+            />
+            <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-10">
+              <div className="bg-brand-yellow text-brand-black text-xs font-bold px-3 py-1 rounded-full inline-flex items-center w-fit mb-3">
+                <Monitor className="w-3 h-3 mr-1" /> REALISTIC
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-brand-black mb-4 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
-                풀 한 포기까지<br />그대로 재현
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+                풀 한 포기, 흔들림까지<br />그대로 재현
               </h3>
-              <p className="text-brand-black/80 font-medium text-lg leading-relaxed break-keep">
-                전국 시험장을 완벽하게 구현하고<br />
-                모션 베이스로 현장감까지 잡았습니다.
+              <p className="text-gray-300 text-sm md:text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
+                전국 시험장을 완벽하게 구현하고 모션 베이스로 현장감까지!
               </p>
             </div>
-            <div className="absolute bottom-0 left-0 right-0 h-32 z-0 opacity-60 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500 origin-bottom translate-x-12">
-              <Image
-                src="/grass.png"
-                alt="Grass"
-                fill
-                className="object-contain object-bottom"
-              />
-            </div>
-            <div className="absolute -bottom-10 -right-10 w-64 h-64 bg-white/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-500" />
           </motion.div>
         </div>
       </div>
@@ -1111,7 +1228,7 @@ const LocationSection = () => {
                   <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>시험장과 가까운 거리</h3>
                   <p className="text-gray-400 leading-relaxed">
                     <strong className="text-white">도봉운전면허시험장</strong>까지<br />
-                    도보로 <strong className="text-brand-yellow">단 5분</strong> 거리입니다.<br />
+                    도보로 <strong className="text-brand-yellow">단 2분</strong> 거리입니다.<br />
                     연습 후 바로 시험 보러 가기 최적의 위치!
                   </p>
                 </div>
@@ -1154,7 +1271,7 @@ const FAQ = () => {
     },
     {
       q: "불합격하면 추가 비용이 드나요?",
-      a: "합격보장반을 등록하시면 합격하실 때까지 추가 비용 없이 무제한으로 연습하실 수 있습니다.",
+      a: "합격보장반을 등록하시면 면허 취득하실 때까지 추가 비용 없이 3개월 간 무제한으로 연습하실 수 있습니다.",
     },
   ];
 
