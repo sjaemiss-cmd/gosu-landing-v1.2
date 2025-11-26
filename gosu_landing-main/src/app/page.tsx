@@ -3,14 +3,23 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { motion, useScroll, useTransform, AnimatePresence, useSpring, useMotionValue } from "framer-motion";
-import { Phone, Check, ChevronDown, ChevronUp, Star, ArrowRight, Menu, X, MapPin, Clock, Award, Users, ShieldCheck, Monitor } from "lucide-react";
-import clsx from "clsx";
-import { twMerge } from "tailwind-merge";
+import { Phone, Star, ArrowRight, Menu, X, MapPin, Award, Users, ShieldCheck, Monitor } from "lucide-react";
+import dynamic from "next/dynamic";
+import { cn } from "@/lib/utils";
 
-// Utility for Tailwind classes
-function cn(...inputs: (string | undefined | null | false)[]) {
-  return twMerge(clsx(inputs));
-}
+// Dynamic Imports
+const ReviewModal = dynamic(() => import("@/components/ReviewModal"), { ssr: false });
+const FAQ = dynamic(() => import("@/components/FAQ"));
+const LocationSection = dynamic(() => import("@/components/LocationSection"));
+const StudentEvent = dynamic(() => import("@/components/StudentEvent"));
+const NewYearEvent = dynamic(() => import("@/components/NewYearEvent"));
+const Footer = dynamic(() => import("@/components/Footer"));
+const FloatingCTA = dynamic(() => import("@/components/FloatingCTA"), { ssr: false });
+
+// --- Configuration ---
+// Set this to true to show the New Year Event, false for Student Event
+const SHOW_NEW_YEAR_EVENT = false;
+// ---------------------
 
 // --- Components ---
 
@@ -25,10 +34,13 @@ const Header = () => {
       >
         <div className="container mx-auto px-4 flex justify-between items-center">
           <div className="flex items-center">
-            <img
+            <Image
               src="/logo-white.png"
               alt="고수의 운전면허 도봉점"
+              width={160}
+              height={48}
               className="h-10 md:h-12 w-auto object-contain"
+              priority
             />
           </div>
 
@@ -198,7 +210,7 @@ const Hero = () => {
             <span className="inline-block px-4 py-1.5 bg-brand-yellow/20 text-brand-yellow text-sm md:text-base font-bold rounded-full mb-6 border border-brand-yellow/30 backdrop-blur-sm">
               노원·도봉지역 운전면허 합격률 1위
             </span>
-            <h1 className="text-5xl md:text-7xl font-extrabold leading-tight text-white mb-8 break-keep tracking-tight" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+            <h1 className="text-5xl md:text-7xl font-extrabold leading-tight text-white mb-8 break-keep tracking-tight font-hakgyoansim">
               <motion.span
                 className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-[length:200%_auto]"
                 animate={{ backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"] }}
@@ -253,6 +265,18 @@ const Hero = () => {
           </motion.div>
         </div>
       </div>
+
+      {/* Scroll Down Indicator */}
+      <motion.div
+        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 text-white/50 flex flex-col items-center gap-2 cursor-pointer"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1, y: [0, 10, 0] }}
+        transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+        onClick={() => document.getElementById('calculator')?.scrollIntoView({ behavior: 'smooth' })}
+      >
+        <span className="text-xs font-medium tracking-widest uppercase">Scroll Down</span>
+        <ArrowRight className="rotate-90" size={20} />
+      </motion.div>
     </section>
   );
 };
@@ -277,7 +301,7 @@ const CostCalculator = () => {
     <section id="calculator" className="min-h-screen flex flex-col justify-center pt-24 pb-12 md:pt-32 md:pb-20 bg-brand-black">
       <div className="container mx-auto px-4">
         <div className="text-center mb-8 md:mb-12">
-          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 break-keep font-hakgyoansim">
             운전면허 취득 비용,<br className="md:hidden" /> <span className="text-status-red">얼마나 낭비하시겠습니까?</span>
           </h2>
           <p className="text-gray-400 break-keep">슬라이더를 움직여서 절약 금액을 확인해보세요.</p>
@@ -429,6 +453,7 @@ const USP = () => {
   const stationVideoRef = React.useRef<HTMLVideoElement>(null);
   const accidentVideoRef = React.useRef<HTMLVideoElement>(null);
   const realisticVideoRef = React.useRef<HTMLVideoElement>(null);
+  const celebVideoRef = React.useRef<HTMLVideoElement>(null);
 
   // State for Realistic Card Playlist
   // 'function' -> plays function.mp4
@@ -578,6 +603,7 @@ const USP = () => {
     if (stationVideoRef.current) observer.observe(stationVideoRef.current);
     if (accidentVideoRef.current) observer.observe(accidentVideoRef.current);
     if (realisticVideoRef.current) observer.observe(realisticVideoRef.current);
+    if (celebVideoRef.current) observer.observe(celebVideoRef.current);
 
     return () => {
       observer.disconnect();
@@ -588,7 +614,7 @@ const USP = () => {
     <section id="usp" className="min-h-screen flex flex-col justify-center pt-24 pb-12 md:pt-32 md:pb-20 bg-brand-black">
       <div className="container mx-auto px-4">
         <div className="text-center mb-12 md:mb-16">
-          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+          <h2 className="text-3xl md:text-5xl font-bold text-white mb-6 break-keep font-hakgyoansim">
             왜 <span className="text-brand-yellow">고수의 운전면허 도봉점</span>인가요?
           </h2>
           <p className="text-gray-400 text-lg break-keep">다른 곳과는 비교할 수 없는 압도적인 차이</p>
@@ -607,7 +633,7 @@ const USP = () => {
               <div className="bg-white/20 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
                 <Award className="w-8 h-8 text-brand-black" />
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-brand-black mb-4 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+              <h3 className="text-2xl md:text-3xl font-bold text-brand-black mb-4 break-keep font-hakgyoansim">
                 합격할 때까지<br />무제한 보장
               </h3>
               <p className="text-brand-black/80 font-medium text-lg leading-relaxed break-keep">
@@ -628,18 +654,19 @@ const USP = () => {
           >
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10" />
             <video
+              ref={celebVideoRef}
               src="/celebv.mp4"
-              autoPlay
               loop
               muted
               playsInline
+              preload="none"
               className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
             />
             <div className="relative z-20 h-full flex flex-col justify-end p-8 md:p-10">
               <div className="bg-brand-yellow text-brand-black text-xs font-bold px-3 py-1 rounded-full inline-flex items-center w-fit mb-3">
                 <Star className="w-3 h-3 mr-1" fill="currentColor" /> CELEB's PICK
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep font-hakgyoansim">
                 연예인도 믿고 찾는<br />검증된 운전 연습장
               </h3>
               <p className="text-gray-300 text-sm md:text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
@@ -670,7 +697,7 @@ const USP = () => {
               <div className="bg-brand-yellow text-brand-black text-xs font-bold px-3 py-1 rounded-full inline-flex items-center w-fit mb-3">
                 <MapPin className="w-3 h-3 mr-1" /> 2min WALK
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep font-hakgyoansim">
                 노원역 3번 출구<br />도보 2분 컷!
               </h3>
               <p className="text-gray-300 text-sm md:text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
@@ -691,7 +718,7 @@ const USP = () => {
               <div className="bg-gray-800 w-14 h-14 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-700 transition-colors">
                 <Users className="w-8 h-8 text-brand-yellow" />
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-4 break-keep font-hakgyoansim">
                 1:1 밀착<br />맞춤 코칭
               </h3>
               <p className="text-gray-400 text-lg leading-relaxed break-keep">
@@ -724,7 +751,7 @@ const USP = () => {
               <div className="bg-brand-yellow text-brand-black text-xs font-bold px-3 py-1 rounded-full inline-flex items-center w-fit mb-3">
                 <ShieldCheck className="w-3 h-3 mr-1" /> SAFE & EASY
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep font-hakgyoansim">
                 실수해도 괜찮아요<br />사고 걱정 ZERO
               </h3>
               <p className="text-gray-300 text-sm md:text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
@@ -754,7 +781,7 @@ const USP = () => {
               <div className="bg-brand-yellow text-brand-black text-xs font-bold px-3 py-1 rounded-full inline-flex items-center w-fit mb-3">
                 <Monitor className="w-3 h-3 mr-1" /> REALISTIC
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+              <h3 className="text-2xl md:text-3xl font-bold text-white mb-2 break-keep font-hakgyoansim">
                 풀 한 포기, 흔들림까지<br />그대로 재현
               </h3>
               <p className="text-gray-300 text-sm md:text-base opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-2 group-hover:translate-y-0">
@@ -769,49 +796,7 @@ const USP = () => {
 };
 
 // 5. Social Proof (Infinite Marquee)
-const ReviewModal = ({ review, onClose }: { review: any; onClose: () => void }) => {
-  if (!review) return null;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm" onClick={onClose}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        className="bg-gray-900 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative border border-gray-800"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 bg-black/50 rounded-full text-white hover:bg-black/70 transition-colors z-10"
-        >
-          <X size={20} />
-        </button>
-
-        <div className="flex flex-col md:flex-row">
-          <div className="w-full md:w-1/2 h-64 md:h-auto relative">
-            <img
-              src={review.image}
-              alt={review.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-          <div className="w-full md:w-1/2 p-6 md:p-8 flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-brand-yellow font-bold text-lg">{review.name}</span>
-              <span className="text-gray-400 text-sm">{review.date}</span>
-            </div>
-            <div className="flex-grow overflow-y-auto">
-              <p className="text-white leading-relaxed whitespace-pre-wrap">
-                {review.text}
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
 
 const SocialProof = () => {
   // Fallback static reviews (used when API fails)
@@ -949,7 +934,7 @@ const SocialProof = () => {
           viewport={{ once: true, margin: "-100px" }}
           className="relative z-10"
         >
-          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6 break-keep tracking-tight leading-tight" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
+          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6 break-keep tracking-tight leading-tight font-hakgyoansim">
             이미{" "}
             <span className="relative inline-block">
               {/* Glow behind text */}
@@ -1059,407 +1044,36 @@ const SocialProof = () => {
 
 
 // 6. Student Discount Event (FOMO)
-const RollingNumber = ({ value }: { value: number }) => {
-  const springValue = useSpring(value, { stiffness: 100, damping: 20 });
-  const displayValue = useTransform(springValue, (current) => Math.round(current).toLocaleString());
-  const color = useTransform(springValue, [550000, 440000], ["#FECE48", "#22C55E"]);
 
-  useEffect(() => {
-    springValue.set(value);
-  }, [value, springValue]);
-
-  return (
-    <motion.span style={{ color }} className="flex items-center gap-1">
-      <motion.span>{displayValue}</motion.span>
-      <span className="text-2xl md:text-3xl">원</span>
-    </motion.span>
-  );
-};
-
-const StudentEvent = () => {
-  const [checkedItems, setCheckedItems] = useState({
-    exam: false,
-    friend: false,
-    insta: false
-  });
-
-  const basePrice = 550000;
-  const discounts = { exam: 10, friend: 5, insta: 5 };
-
-  const totalDiscount =
-    (checkedItems.exam ? discounts.exam : 0) +
-    (checkedItems.friend ? discounts.friend : 0) +
-    (checkedItems.insta ? discounts.insta : 0);
-
-  const finalPrice = basePrice * (1 - totalDiscount / 100);
-
-  const handleCheckboxChange = (key: keyof typeof checkedItems) => {
-    setCheckedItems(prev => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  return (
-    <section id="event" className="py-12 md:py-20 bg-gradient-to-b from-brand-black to-gray-900 border-y border-gray-800">
-      <div className="container mx-auto px-4 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-4xl mx-auto bg-gray-800 rounded-3xl p-6 md:p-12 border-2 border-brand-yellow shadow-[0_0_30px_rgba(254,206,72,0.15)] relative overflow-hidden"
-        >
-          {/* Badge */}
-          <div className="absolute top-0 right-0 bg-status-red text-white font-bold px-6 py-2 md:px-8 md:py-3 text-sm md:text-base rounded-bl-2xl shadow-lg animate-pulse z-10">
-            마감 임박!
-          </div>
-
-          <div className="mb-8">
-            <span className="inline-block bg-brand-yellow text-brand-black font-bold px-4 py-1 rounded-full mb-4">
-              수험생 특별 혜택
-            </span>
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-4 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
-              수험표만 있으면 <br className="md:hidden" /><span className="text-brand-yellow">최대 20% 할인</span>
-            </h2>
-            <p className="text-gray-300 text-lg md:text-xl break-keep">
-              대학 입학 전, 가장 저렴하게 면허를 취득할 수 있는 마지막 기회입니다.
-            </p>
-          </div>
-
-          {/* Interactive Discount Calculator */}
-          <div className="bg-black/30 rounded-xl p-6 md:p-8 mb-8 max-w-2xl mx-auto border border-brand-yellow/30 backdrop-blur-sm">
-            <div className="text-center mb-6">
-              <p className="text-brand-yellow font-bold text-lg mb-2">💰 나의 할인가 확인하기</p>
-              <p className="text-gray-400 text-sm">체크할수록 더 저렴해집니다!</p>
-            </div>
-
-            {/* Checkboxes */}
-            <div className="space-y-4 mb-8">
-              {[
-                { id: 'exam', label: '수험표 소지', required: true },
-                { id: 'friend', label: '친구와 함께 등록', required: false },
-                { id: 'insta', label: '인스타 공유', required: false }
-              ].map((item) => (
-                <div key={item.id} className="flex flex-wrap items-center justify-between bg-gray-700/50 p-4 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => handleCheckboxChange(item.id as keyof typeof checkedItems)}>
-                  <div className="flex items-center gap-3">
-                    <div className={`w-6 h-6 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${checkedItems[item.id as keyof typeof checkedItems] ? 'bg-brand-yellow border-brand-yellow' : 'border-gray-500'}`}>
-                      {checkedItems[item.id as keyof typeof checkedItems] && <Check size={16} className="text-black" />}
-                    </div>
-                    <span className="text-white font-medium whitespace-nowrap">{item.label}</span>
-                  </div>
-                  <span className="text-brand-yellow font-bold whitespace-nowrap ml-auto">
-                    {item.id === 'exam' ? '-55,000원' : '-27,500원'}
-                  </span>
-                </div>
-              ))}
-            </div>
-
-            {/* Price Display */}
-            <div className="flex flex-col items-center justify-center p-6 bg-brand-black/50 rounded-xl border border-gray-700">
-              <div className="text-gray-400 text-sm mb-1">예상 수강료 (VAT 포함)</div>
-              <div className="flex items-baseline gap-2">
-                <div className="text-4xl md:text-5xl font-black flex items-center gap-1 justify-center">
-                  <RollingNumber value={finalPrice} />
-                </div>
-              </div>
-              <div className="mt-2 text-status-red font-bold text-sm bg-status-red/10 px-3 py-1 rounded-full">
-                총 {totalDiscount}% 할인 적용 중
-              </div>
-            </div>
-          </div>
-
-          <motion.a
-            href="https://pcmap.place.naver.com/place/38729351/ticket"
-            target="_blank"
-            rel="noopener noreferrer"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-2 bg-brand-yellow text-brand-black px-8 py-4 rounded-full font-bold text-xl shadow-lg hover:bg-yellow-400 transition-colors relative overflow-hidden group"
-          >
-            <span className="relative z-10 flex items-center gap-2">
-              무료 상담 후 할인받기 <ArrowRight size={24} />
-            </span>
-            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-          </motion.a>
-        </motion.div>
-      </div>
-    </section>
-  );
-};
 
 // 6.5 Location Section (New)
-const LocationSection = () => {
-  return (
-    <section id="location" className="pt-24 pb-12 md:pt-32 md:pb-20 bg-brand-black">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-8 md:mb-16">
-          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 break-keep" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>
-            <span className="text-brand-yellow">노원역 3번 출구</span>에서<br className="md:hidden" /> 걸어서 <span className="text-brand-yellow">단 2분</span>
-          </h2>
-          <p className="text-gray-400 break-keep">더 이상 멀리 다니지 마세요. 역세권 최고의 접근성!</p>
-        </div>
 
-        <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* Naver Map Image */}
-          <motion.div
-            className="w-full md:w-1/2 flex flex-col gap-4"
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <a
-              href="https://map.naver.com/p/entry/place/38729351?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202511241635&locale=ko&svcName=map_pcv5&searchType=place&lng=127.0605764&lat=37.6559517&c=15.00,0,0,0,dh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block relative aspect-square md:aspect-[4/3] rounded-2xl overflow-hidden border-2 border-gray-800 shadow-2xl group"
-            >
-              <Image
-                src="/naver_map.png"
-                alt="고수의 운전면허 도봉점 네이버 지도"
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
-                <span className="opacity-0 group-hover:opacity-100 bg-brand-black/80 text-white px-4 py-2 rounded-full text-sm font-bold transition-opacity duration-300">지도 크게 보기</span>
-              </div>
-            </a>
-
-            <a
-              href="https://map.naver.com/p/entry/place/38729351?placePath=/home?entry=plt&from=map&fromPanelNum=1&additionalHeight=76&timestamp=202511241635&locale=ko&svcName=map_pcv5&searchType=place&lng=127.0605764&lat=37.6559517&c=15.00,0,0,0,dh"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full inline-flex items-center justify-center gap-2 bg-[#03C75A] text-white px-6 py-4 rounded-xl font-bold hover:bg-[#02b351] transition-colors duration-300 shadow-lg"
-            >
-              네이버 지도로 보기 <ArrowRight size={20} />
-            </a>
-          </motion.div>
-
-          {/* Text Content */}
-          <motion.div
-            className="w-full md:w-1/2 text-left"
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
-          >
-            <div className="space-y-8">
-              <div className="flex items-start gap-4">
-                <div className="bg-brand-yellow/10 p-3 rounded-full">
-                  <MapPin className="text-brand-yellow" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>편하게 걸어올 위치</h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    <strong className="text-white" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>노원역 3번 출구</strong>로 나오셔서 직진 100m,<br />
-                    미도빌딩 5층에 위치해 있습니다.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="bg-brand-yellow/10 p-3 rounded-full">
-                  <Check className="text-brand-yellow" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>시험장과 가까운 거리</h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    <strong className="text-white">도봉운전면허시험장</strong>까지<br />
-                    도보로 <strong className="text-brand-yellow">단 2분</strong> 거리입니다.<br />
-                    연습 후 바로 시험 보러 가기 최적의 위치!
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-4">
-                <div className="bg-brand-yellow/10 p-3 rounded-full">
-                  <Clock className="text-brand-yellow" size={24} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>편리한 방문</h3>
-                  <p className="text-gray-400 leading-relaxed">
-                    대중교통 이용이 매우 편리하며,<br />
-                    건물 내 주차도 가능합니다. (사전 문의 필수)
-                  </p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </div>
-    </section>
-  );
-};
 
 // 7. FAQ
-const FAQ = () => {
-  const faqs = [
-    {
-      q: "정말 시뮬레이터로 연습해도 합격할 수 있나요?",
-      a: "네, 합격 할 수 있기 때문에 합격무제한 상품을 기획했습니다! 실제 시험장 코스를 완벽하게 구현하여 코스 암기와 핸들링 감각을 익히는데 최적화되어 있습니다. 실제 차를 타기 전 충분한 연습이 되어 합격률이 매우 높습니다.",
-    },
-    {
-      q: "운전을 아예 처음 해보는데 괜찮을까요?",
-      a: "물론입니다. 기초 조작법부터 차근차근 1:1로 알려드리기 때문에 초보자분들도 걱정 없이 시작하실 수 있습니다.",
-    },
-    {
-      q: "예약은 어떻게 하나요?",
-      a: "최초 예약은 네이버 예약 혹은 카카오톡 채팅을 통해 진행하실 수 있으며, 이후 예약은 카카오톡을 통해 원하시는 시간에 자유롭게 예약하실 수 있습니다. 당일 예약도 가능합니다.",
-    },
-    {
-      q: "불합격하면 추가 비용이 드나요?",
-      a: "합격보장반을 등록하시면 면허 취득하실 때까지 추가 비용 없이 3개월 간 무제한으로 연습하실 수 있습니다.",
-    },
-  ];
 
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  return (
-    <section id="faq" className="min-h-screen flex flex-col justify-center pt-24 pb-12 md:pt-32 md:pb-20 bg-brand-black">
-      <div className="container mx-auto px-4 max-w-3xl">
-        <div className="text-center mb-8 md:mb-12 relative inline-block w-full">
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-20 h-20 md:w-32 md:h-32 animate-bounce duration-[2000ms] z-0 opacity-80">
-            <Image
-              src="/speaker.webp"
-              alt="Speaker"
-              fill
-              className="object-contain"
-            />
-          </div>
-          <h2 className="text-2xl md:text-4xl font-bold text-white mb-4 relative z-10" style={{ fontFamily: "'Hakgyoansim Allimjang', sans-serif" }}>자주 묻는 질문</h2>
-        </div>
-
-        <div className="space-y-4">
-          {faqs.map((faq, index) => (
-            <div key={index} className="border border-gray-800 rounded-xl overflow-hidden">
-              <button
-                onClick={() => setOpenIndex(openIndex === index ? null : index)}
-                className="w-full flex justify-between items-center p-6 bg-gray-900 hover:bg-gray-800 transition-colors text-left"
-              >
-                <span className="font-bold text-lg text-white break-keep pr-4">{faq.q}</span>
-                {openIndex === index ? <ChevronUp className="text-gray-400 flex-shrink-0" /> : <ChevronDown className="text-gray-400 flex-shrink-0" />}
-              </button>
-              <AnimatePresence>
-                {openIndex === index && (
-                  <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="bg-gray-900 px-6 pb-6 text-gray-400 leading-relaxed"
-                  >
-                    <div className="pt-2 border-t border-gray-800 mt-2 break-keep">
-                      {faq.a}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
 
 // 7. Floating CTA
-const FloatingCTA = () => {
-  const [isVisible, setIsVisible] = useState(false);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsVisible(window.scrollY > 500);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  return (
-    <AnimatePresence>
-      {isVisible && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-0 left-0 right-0 md:bottom-8 md:left-auto md:right-8 z-40 p-4 md:p-0 flex flex-row md:flex-col gap-3 items-center md:items-end"
-        >
-          {/* Naver Button */}
-          <a
-            href="https://pcmap.place.naver.com/place/38729351/ticket"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 md:flex-none w-full md:w-auto bg-[#03C75A] text-white font-bold text-lg py-4 px-6 rounded-xl shadow-xl hover:bg-[#02b351] transition-colors text-center flex items-center justify-center gap-2"
-          >
-            <span className="font-extrabold">N</span>
-            <span>네이버 예약</span>
-          </a>
-
-          {/* Kakao Button */}
-          <a
-            href="https://pf.kakao.com/_hxlxnIs"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 md:flex-none w-full md:w-auto bg-brand-yellow text-brand-black font-bold text-lg py-4 px-6 rounded-xl shadow-xl hover:bg-yellow-400 transition-colors text-center flex items-center justify-center gap-2 relative"
-          >
-            <span className="bg-brand-black text-brand-yellow text-xs px-2 py-0.5 rounded-full absolute -top-3 left-1/2 md:left-auto md:right-4 transform -translate-x-1/2 md:translate-x-0 animate-bounce whitespace-nowrap">
-              상담 무료!
-            </span>
-            <span className="font-extrabold">K</span>
-            <span>카카오톡 상담</span>
-          </a>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
 
 // 8. Footer
-const Footer = () => {
-  return (
-    <footer className="bg-gray-900 py-12 text-gray-400 text-sm">
-      <div className="container mx-auto px-4 text-center md:text-left">
-        {/* 1. grid-cols-1 추가 (모바일에서 1열로 꽉 채우기 위함) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
 
-          {/* 2. md:col-span-2 로 변경 (모바일에서는 col-span 적용 안 함) */}
-          {/* md:col-span-2 적용 (모바일 1칸, 데스크탑 2칸) */}
-          <div className="md:col-span-2">
-            <div className="mb-6 flex justify-center md:justify-start">
-              <img
-                src="/logo-white.png"
-                alt="고수의 운전면허 도봉점"
-                className="h-12 w-auto object-contain opacity-80 hover:opacity-100 transition-all duration-300"
-              />
-            </div>
-
-            {/* [중요] p 태그를 div로 변경하여 Hydration 에러 방지 */}
-            <div className="mb-4 text-center md:text-left text-sm text-gray-400">
-              서울 노원구 동일로1426 미도빌딩 5층 504호<br />
-              사업자등록번호: 415-16-63829
-            </div>
-          </div>
-          {/* 고객센터 영역: 이제 그리드가 1열이 되므로 text-center만 있어도 중앙으로 옵니다 */}
-          <div className="text-center md:text-center">
-            <h4 className="font-bold text-white mb-4">고객센터</h4>
-            <p className="font-bold text-lg text-white mb-2">02-930-9394</p>
-            <p>평일 09:00 - 21:00<br />토요일 10:00 - 18:00<br />일요일 휴무</p>
-          </div>
-        </div>
-        <div className="border-t border-gray-800 pt-8 text-center text-gray-600">
-          &copy; 2024 고수의 운전면허 도봉점. All rights reserved.
-        </div>
-      </div>
-    </footer>
-  );
-};
 
 export default function Home() {
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001
+  });
+
   return (
     <main className="min-h-screen bg-brand-black font-sans text-white selection:bg-brand-yellow selection:text-brand-black overflow-x-hidden relative">
-      {/* Background Texture */}
-      <div
-        className="fixed inset-0 z-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: "url('/background_texture.png')",
-          backgroundRepeat: "repeat",
-          backgroundSize: "400px",
-          filter: "invert(1)"
-        }}
-      ></div>
+      {/* Scroll Progress Bar */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-brand-yellow origin-left z-[100]"
+        style={{ scaleX }}
+      />
+
       <div className="relative z-10">
         <Header />
         <Hero />
@@ -1467,7 +1081,8 @@ export default function Home() {
         <USP />
         <SocialProof />
         <LocationSection />
-        <StudentEvent />
+        {/* Event Section - Swappable */}
+        {SHOW_NEW_YEAR_EVENT ? <NewYearEvent /> : <StudentEvent />}
         <FAQ />
         <Footer />
         <FloatingCTA />
